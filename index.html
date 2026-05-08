@@ -1,331 +1,95 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>UPSC AI Mentor</title>
+const OPENAI_API_KEY = "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
+";
 
-  <style>
+async function sendMessage() {
 
-    *{
-      margin:0;
-      padding:0;
-      box-sizing:border-box;
-      font-family:Arial, sans-serif;
-    }
+  const message = userInput.value.trim();
 
-    body{
-      background:#f4f7fb;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      height:100vh;
-      padding:15px;
-    }
+  if (!message) return;
 
-    .chat-container{
-      width:100%;
-      max-width:450px;
-      height:92vh;
-      background:#ffffff;
-      border-radius:18px;
-      overflow:hidden;
-      box-shadow:0 10px 35px rgba(0,0,0,0.12);
-      display:flex;
-      flex-direction:column;
-    }
+  addMessage(message, "user");
 
-    .chat-header{
-      background:#0b3d91;
-      color:#fff;
-      padding:18px;
-      text-align:center;
-      font-size:22px;
-      font-weight:bold;
-      letter-spacing:0.5px;
-    }
+  userInput.value = "";
 
-    .chat-box{
-      flex:1;
-      padding:16px;
-      overflow-y:auto;
-      display:flex;
-      flex-direction:column;
-      gap:14px;
-      background:#f7f9fc;
-    }
+  showTyping();
 
-    .user-message{
-      align-self:flex-end;
-      background:#0b3d91;
-      color:#fff;
-      padding:12px 14px;
-      border-radius:16px 16px 0 16px;
-      max-width:82%;
-      line-height:1.6;
-      font-size:15px;
-    }
+  try {
 
-    .bot-message{
-      align-self:flex-start;
-      background:#e9efff;
-      color:#111;
-      padding:12px 14px;
-      border-radius:16px 16px 16px 0;
-      max-width:82%;
-      line-height:1.7;
-      font-size:15px;
-    }
+    const response = await fetch(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${OPENAI_API_KEY}`
+        },
 
-    .input-area{
-      display:flex;
-      gap:10px;
-      padding:14px;
-      border-top:1px solid #ddd;
-      background:#fff;
-    }
+        body: JSON.stringify({
 
-    input{
-      flex:1;
-      padding:14px;
-      border:1px solid #ccc;
-      border-radius:12px;
-      outline:none;
-      font-size:15px;
-    }
+          model: "gpt-3.5-turbo",
 
-    input:focus{
-      border-color:#0b3d91;
-    }
-
-    button{
-      background:#0b3d91;
-      color:white;
-      border:none;
-      padding:14px 18px;
-      border-radius:12px;
-      cursor:pointer;
-      font-weight:bold;
-      transition:0.2s;
-    }
-
-    button:hover{
-      background:#082d6b;
-    }
-
-    .typing{
-      opacity:0.7;
-      font-style:italic;
-    }
-
-    @media(max-width:500px){
-
-      body{
-        padding:0;
-      }
-
-      .chat-container{
-        width:100%;
-        height:100vh;
-        border-radius:0;
-      }
-
-    }
-
-  </style>
-</head>
-<body>
-
-  <div class="chat-container">
-
-    <div class="chat-header">
-      UPSC AI Mentor
-    </div>
-
-    <div class="chat-box" id="chatBox">
-
-      <div class="bot-message">
-        Hello Aspirant 👋<br><br>
-        Ask me anything related to:
-        <br><br>
-        • UPSC Preparation<br>
-        • Current Affairs<br>
-        • GS Papers<br>
-        • Essay Strategy<br>
-        • Ethics<br>
-        • Optional Subjects<br>
-        • Answer Writing<br>
-        • Prelims & Mains Guidance
-      </div>
-
-    </div>
-
-    <div class="input-area">
-
-      <input
-        type="text"
-        id="userInput"
-        placeholder="Ask your UPSC question..."
-      />
-
-      <button id="sendBtn">
-        Send
-      </button>
-
-    </div>
-
-  </div>
-
-  <script>
-
-    const chatBox = document.getElementById("chatBox");
-    const userInput = document.getElementById("userInput");
-    const sendBtn = document.getElementById("sendBtn");
-
-    // ==========================================
-    // ADD YOUR OPENAI API KEY HERE
-    // ==========================================
-    const OPENAI_API_KEY = "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";
-
-    async function sendMessage() {
-
-      const message = userInput.value.trim();
-
-      if (!message) return;
-
-      addMessage(message, "user");
-
-      userInput.value = "";
-
-      showTyping();
-
-      try {
-
-        const response = await fetch(
-          "https://api.openai.com/v1/chat/completions",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${OPENAI_API_KEY}`
-            },
-            body: JSON.stringify({
-
-              model: "gpt-4.1-mini",
-
-              messages: [
-
-                {
-                  role: "system",
-                  content: `
+          messages: [
+            {
+              role: "system",
+              content: `
 You are UPSC AI Mentor.
 
-Strict Rules:
-- Answer only UPSC and government exam related questions.
-- Keep responses within 4-6 lines maximum.
-- Give concise, accurate and exam-oriented answers.
-- Never mention coaching institutes.
-- Never mention competitor websites/platforms.
-- Never recommend YouTube channels/videos.
-- Never promote external learning resources.
-- Maintain professional mentor tone.
-- Give practical UPSC guidance only.
-- Avoid long paragraphs.
-                  `
-                },
+Rules:
+- Reply in 4-5 lines only
+- Give concise UPSC guidance
+- Never mention coaching institutes
+- Never mention competitor websites
+- Never suggest YouTube videos
+- Answer professionally
+              `
+            },
+            {
+              role: "user",
+              content: message
+            }
+          ],
 
-                {
-                  role: "user",
-                  content: message
-                }
+          temperature: 0.7,
+          max_tokens: 150
 
-              ],
-
-              temperature: 0.7,
-              max_tokens: 180
-
-            })
-          }
-        );
-
-        const data = await response.json();
-
-        removeTyping();
-
-        const botReply =
-          data?.choices?.[0]?.message?.content ||
-          "Unable to generate response.";
-
-        addMessage(botReply, "bot");
-
+        })
       }
-      catch(error){
+    );
 
-        removeTyping();
+    // DEBUGGING
+    console.log("RAW RESPONSE:", response);
 
-        addMessage(
-          "Something went wrong. Please try again.",
-          "bot"
-        );
+    const data = await response.json();
 
-        console.error(error);
+    console.log("API DATA:", data);
 
-      }
+    removeTyping();
 
+    if (data.error) {
+
+      addMessage(
+        "API Error: " + data.error.message,
+        "bot"
+      );
+
+      return;
     }
 
-    function addMessage(text, sender){
+    const botReply =
+      data.choices[0].message.content;
 
-      const div = document.createElement("div");
+    addMessage(botReply, "bot");
 
-      div.className =
-        sender === "user"
-        ? "user-message"
-        : "bot-message";
+  }
+  catch(error){
 
-      div.innerHTML = text.replace(/\n/g, "<br>");
+    removeTyping();
 
-      chatBox.appendChild(div);
+    console.error(error);
 
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    function showTyping(){
-
-      const div = document.createElement("div");
-
-      div.className = "bot-message typing";
-
-      div.id = "typing";
-
-      div.innerHTML = "Typing...";
-
-      chatBox.appendChild(div);
-
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    function removeTyping(){
-
-      const typing = document.getElementById("typing");
-
-      if(typing){
-        typing.remove();
-      }
-
-    }
-
-    sendBtn.addEventListener("click", sendMessage);
-
-    userInput.addEventListener("keypress", function(e){
-
-      if(e.key === "Enter"){
-        sendMessage();
-      }
-
-    });
-
-  </script>
-
-</body>
-</html>
+    addMessage(
+      "Error connecting to OpenAI API.",
+      "bot"
+    );
+  }
+}
